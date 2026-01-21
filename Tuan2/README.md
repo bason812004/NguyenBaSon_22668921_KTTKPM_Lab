@@ -1,4 +1,4 @@
-# Tuần 3 - Design Patterns
+# Tuần 2 - Design Patterns
 
 ## Bài tập áp dụng Design Patterns
 
