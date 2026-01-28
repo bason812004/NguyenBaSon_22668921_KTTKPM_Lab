@@ -64,4 +64,8 @@ public class Stock {
     public double getPrice() {
         return price;
     }
+    
+    public int getObserverCount() {
+        return observers.size();
+    }
 }
