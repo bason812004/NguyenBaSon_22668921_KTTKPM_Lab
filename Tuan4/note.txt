@@ -1,0 +1,108 @@
+
+1. Image opti + Image save data
+	Image-- 2 stage (stage-- build, stage-- run container) 
+	--optimization image ()--dockerhub
+	+1
+	
+	pull image posrgres--insert data--container -- image (image-ready data)
+	
+	2 -dockerfile-container--image	
+	+1
+
+2. Xem (20')
+		- Database partition (SQl Server)
+					- Horizontal (row)
+					- Vertical
+					- Function
+		Ví dụ về 3 phần này 
+				- DB (2 table_user_01 và table_user_02)-- condition-- 01 or 02 
+					(nam table_user_01, nữ table_user_02)... spring boot
+				- Vertical
+				- Function
+			-- Tăng performance
+				
+	3. Mono -> service-based architecture (3 functions)
+		Mục tiêu:
+		- Tách từ monolith (BE + FE + DB chung) sang 3 service theo business.
+		- Mỗi service deploy độc lập, scale độc lập, giảm coupling.
+		
+		Đề xuất 3 functions:
+		- User Service: đăng ký/đăng nhập/hồ sơ người dùng.
+		- Order Service: tạo đơn, trạng thái đơn, lịch sử đơn.
+		- Inventory Service: tồn kho món ăn/nguyên liệu.
+		
+		Thiết kế dữ liệu giai đoạn chuyển đổi:
+		- Giai đoạn 1 (nhanh): dùng 1 DB chung nhưng tách schema theo service.
+			+ user_svc.*
+			+ order_svc.*
+			+ inventory_svc.*
+		- Giai đoạn 2 (mở rộng): database-per-service để tăng isolation và scale.
+		
+		Luồng FE/BE:
+		- FE gọi API Gateway.
+		- Gateway route tới từng service.
+		- Service đồng bộ qua REST/gRPC cho query đơn giản.
+		- Service bất đồng bộ qua event bus cho trạng thái nghiệp vụ.
+		
+		Lộ trình triển khai ngắn:
+		1. Tách code monolith theo module User/Order/Inventory.
+		2. Bóc từng module thành service riêng, giữ contract API cũ qua Gateway.
+		3. Tách schema DB theo service, thêm migration.
+		4. Bổ sung message broker (Kafka/RabbitMQ) cho event.
+		5. Bổ sung observability (log tập trung, trace, metrics).
+
+	4. Chủ đề Event choreography vs orchestration
+		Bài tập: Thiết kế workflow đặt đơn thực phẩm
+		
+		4.1 Workflow dùng Event Choreography
+		- Order Service tạo đơn -> publish OrderCreated.
+		- Inventory Service subscribe OrderCreated -> giữ hàng -> publish InventoryReserved hoặc InventoryRejected.
+		- Payment Service subscribe InventoryReserved -> thanh toán -> publish PaymentSucceeded hoặc PaymentFailed.
+		- Delivery Service subscribe PaymentSucceeded -> tạo giao vận -> publish DeliveryCreated.
+		- Notification Service subscribe các event để gửi thông báo.
+		
+		Ưu điểm Choreography:
+		- Không có bộ điều phối trung tâm -> giảm single point of failure.
+		- Service độc lập, scale tốt theo tải từng domain.
+		- Dễ mở rộng thêm service mới chỉ bằng subscribe event.
+		
+		Nhược điểm Choreography:
+		- Khó theo dõi end-to-end vì logic phân tán.
+		- Debug/monitor khó hơn khi có nhiều event chain.
+		- Quản lý consistency phức tạp, cần idempotency + retry + DLQ.
+		
+		4.2 Workflow dùng Event Orchestration (1 orchestrator)
+		- Orchestrator nhận yêu cầu tạo đơn.
+		- B1: gọi Inventory reserve.
+		- B2: nếu thành công, gọi Payment charge.
+		- B3: nếu thành công, gọi Delivery create.
+		- B4: nếu bước nào lỗi, thực hiện compensation (refund/release stock/cancel order).
+		- B5: cập nhật trạng thái cuối và gửi notification.
+		
+		Ưu điểm Orchestration:
+		- Luồng nghiệp vụ rõ ràng, dễ theo dõi/audit.
+		- Dễ áp chính sách timeout, retry, saga compensation tập trung.
+		- Dễ kiểm soát compliance và transaction nghiệp vụ phức tạp.
+		
+		Nhược điểm Orchestration:
+		- Orchestrator có thể thành bottleneck nếu không scale đúng.
+		- Tăng coupling với orchestrator, team phụ thuộc nhiều hơn.
+		- Nếu orchestrator lỗi mà thiếu HA sẽ ảnh hưởng toàn flow.
+		
+		4.3 So sánh nhanh
+		- Choreography: linh hoạt, scale ngang tốt, nhưng khó kiểm soát toàn cục.
+		- Orchestration: kiểm soát tốt, dễ vận hành nghiệp vụ phức tạp, nhưng cần đầu tư HA cho orchestrator.
+		
+		4.4 Quyết định mô hình phù hợp với scaling + resilience
+		- Với hệ thống đặt đồ ăn tăng trưởng nhanh và nhiều team: ưu tiên Choreography cho event chính.
+		- Với flow thanh toán/hoàn tiền cần kiểm soát chặt: dùng Orchestration cho saga quan trọng.
+		- Khuyến nghị thực tế: Hybrid model
+			+ Core transaction (Order-Inventory-Payment): Orchestration.
+			+ Side effects (Notification, Analytics, Loyalty): Choreography.
+		
+		Checklist kỹ thuật bắt buộc cho cả 2 mô hình:
+		1. Idempotency key cho consumer/service.
+		2. Retry có backoff + Dead Letter Queue.
+		3. Correlation ID để trace toàn chuỗi.
+		4. Outbox pattern để tránh mất event.
+		5. Dashboard theo dõi SLA, error rate, lag queue.

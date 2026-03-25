@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cau 3 + Cau 4 Demo</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main>
+    <h1>Cau 3 + Cau 4: FE + BE + DB Demo</h1>
+    <p>Gateway API: /api/*</p>
+
+    <section>
+      <h2>Create User</h2>
+      <input id="name" placeholder="Full name" />
+      <input id="email" placeholder="Email" />
+      <button onclick="createUser()">Create</button>
+    </section>
+
+    <section>
+      <h2>Create Order</h2>
+      <input id="user_id" type="number" placeholder="User ID" />
+      <input id="item_name" placeholder="Item name (Com ga | Pho bo | Bun cha)" />
+      <input id="quantity" type="number" placeholder="Quantity" />
+      <button onclick="createChoreographyOrder()">Choreography Order</button>
+      <button onclick="createOrchestrationOrder()">Orchestration Order</button>
+    </section>
+
+    <section>
+      <button onclick="loadAll()">Refresh All Data</button>
+    </section>
+
+    <section>
+      <h2>Users</h2>
+      <pre id="users"></pre>
+    </section>
+
+    <section>
+      <h2>Inventory</h2>
+      <pre id="inventory"></pre>
+    </section>
+
+    <section>
+      <h2>Orders</h2>
+      <pre id="orders"></pre>
+    </section>
+
+    <section>
+      <h2>Events</h2>
+      <pre id="events"></pre>
+    </section>
+
+    <section>
+      <h2>Last Response</h2>
+      <pre id="result"></pre>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

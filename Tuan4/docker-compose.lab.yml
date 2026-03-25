@@ -1,0 +1,29 @@
+services:
+  cau1-app:
+    build:
+      context: ./cau1-app
+      dockerfile: Dockerfile
+    image: nam4hk2/cau1-app:1.0
+    container_name: cau1-app
+    ports:
+      - "8080:8080"
+
+  pg-seed:
+    image: postgres:16-alpine
+    container_name: pg-seed
+    environment:
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: fooddb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./cau1-postgres/seed:/docker-entrypoint-initdb.d
+
+  sql2022:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sql2022
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "YourStrong!Passw0rd"
+    ports:
+      - "1433:1433"
