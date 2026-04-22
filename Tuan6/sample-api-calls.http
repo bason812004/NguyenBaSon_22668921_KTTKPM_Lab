@@ -1,0 +1,51 @@
+@baseUrl = http://localhost:8080
+@username = alice{{$timestamp}}
+@email = alice{{$timestamp}}@example.com
+@password = 123456
+
+### Register user
+POST {{baseUrl}}/users/register
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Login
+POST {{baseUrl}}/users/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Create movie
+POST {{baseUrl}}/movies
+Content-Type: application/json
+
+{
+  "title": "Dune 2",
+  "genre": "Sci-Fi",
+  "durationMinutes": 166,
+  "description": "Epic sci-fi"
+}
+
+### Get movies
+GET {{baseUrl}}/movies
+
+### Create booking
+POST {{baseUrl}}/bookings
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "movieId": 1,
+  "seatCount": 2,
+  "totalPrice": 200
+}
+
+### Get bookings
+GET {{baseUrl}}/bookings
